@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import umc.spring.domain.enums.MissionStatus;
+import umc.spring.dto.MissionWithStoreAndRegionDto;
 import umc.spring.dto.MissionWithStoreAndStatusDto;
 import umc.spring.dto.ReviewWithMemberAndStoreDto;
 import umc.spring.service.MissionQueryService;
@@ -79,26 +80,52 @@ public class Application {
 //	}
 
 	//미션2
+//	@Bean
+//	public CommandLineRunner run(ApplicationContext context) {
+//		return args -> {
+//			ReviewQueryService reviewService = context.getBean(ReviewQueryService.class);
+//
+//			Long memberId = 1L; // 테스트할 member ID
+//
+//			System.out.println("Executing findReviewsByMemberId with Member ID: " + memberId);
+//
+//			List<ReviewWithMemberAndStoreDto> reviews = reviewService.findReviewsByMemberId(memberId);
+//
+//			if (reviews.isEmpty()) {
+//				System.out.println("No reviews found.");
+//			} else {
+//				reviews.forEach(review -> {
+//					System.out.println("Nickname: " + review.getNickname());
+//					System.out.println("Score: " + review.getScore());
+//					System.out.println("Review Body: " + review.getReviewBody());
+//					System.out.println("Store Name: " + review.getStoreName());
+//					System.out.println("Review Date: " + review.getReviewDate());
+//					System.out.println("----------");
+//				});
+//			}
+//		};
+//	}
+
 	@Bean
 	public CommandLineRunner run(ApplicationContext context) {
 		return args -> {
-			ReviewQueryService reviewService = context.getBean(ReviewQueryService.class);
+			MissionQueryService missionService = context.getBean(MissionQueryService.class);
 
-			Long memberId = 1L; // 테스트할 member ID
+			Long memberId = 1L;
 
-			System.out.println("Executing findReviewsByMemberId with Member ID: " + memberId);
+			System.out.println("Executing findUnchallengedMissionsByRegionForMember with Member ID: " + memberId);
 
-			List<ReviewWithMemberAndStoreDto> reviews = reviewService.findReviewsByMemberId(memberId);
+			List<MissionWithStoreAndRegionDto> missions = missionService.findUnchallengedMissionsByRegionForMember(memberId);
 
-			if (reviews.isEmpty()) {
-				System.out.println("No reviews found.");
+			if (missions.isEmpty()) {
+				System.out.println("No unchallenged missions found.");
 			} else {
-				reviews.forEach(review -> {
-					System.out.println("Nickname: " + review.getNickname());
-					System.out.println("Score: " + review.getScore());
-					System.out.println("Review Body: " + review.getReviewBody());
-					System.out.println("Store Name: " + review.getStoreName());
-					System.out.println("Review Date: " + review.getReviewDate());
+				missions.forEach(mission -> {
+					System.out.println("Mission Spec: " + mission.getMissionSpec());
+					System.out.println("Reward: " + mission.getReward() + " P");
+					System.out.println("Store Name: " + mission.getStoreName());
+					System.out.println("Region Name: " + mission.getRegionName());
+					System.out.println("미션 도전!");
 					System.out.println("----------");
 				});
 			}

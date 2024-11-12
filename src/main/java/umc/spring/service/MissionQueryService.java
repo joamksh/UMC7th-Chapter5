@@ -1,13 +1,14 @@
 package umc.spring.service;
-
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import umc.spring.dto.MissionWithStoreAndStatusDto;
+import umc.spring.dto.MissionWithStoreAndRegionDto;
 import umc.spring.domain.QMember;
 import umc.spring.domain.QMission;
 import umc.spring.domain.QStore;
+import umc.spring.domain.QRegion;
 import umc.spring.domain.enums.MissionStatus;
 import umc.spring.domain.mapping.QMemberMission;
 
@@ -47,6 +48,32 @@ public class MissionQueryService {
                         .and(memberMission.status.in(MissionStatus.COMPLETE, MissionStatus.CHALLENGING)))
                 .limit(limit)
                 .offset(offset)
+                .fetch();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MissionWithStoreAndRegionDto> findUnchallengedMissionsByRegionForMember(Long memberId) {
+        QMission mission = QMission.mission;
+        QStore store = QStore.store;
+        QRegion region = QRegion.region;
+        QMember member = QMember.member;
+        QMemberMission memberMission = QMemberMission.memberMission;
+
+        return queryFactory
+                .select(Projections.constructor(MissionWithStoreAndRegionDto.class,
+                        mission.id,
+                        mission.missionSpec,
+                        mission.reward,
+                        store.name.as("storeName"),
+                        region.name.as("regionName")
+                ))
+                .from(mission)
+                .join(mission.store, store)
+                .join(store.region, region)
+                .join(member).on(member.specAddress.eq(region.name))
+                .leftJoin(memberMission).on(memberMission.mission.eq(mission).and(memberMission.member.eq(member)))
+                .where(member.id.eq(memberId)
+                        .and(memberMission.mission.id.isNull())) // 도전하지 않은 미션만 선택
                 .fetch();
     }
 }
