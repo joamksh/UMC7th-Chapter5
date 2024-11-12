@@ -8,7 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import umc.spring.domain.enums.MissionStatus;
 import umc.spring.dto.MissionWithStoreAndStatusDto;
+import umc.spring.dto.ReviewWithMemberAndStoreDto;
 import umc.spring.service.MissionQueryService;
+import umc.spring.service.ReviewQueryService;
 import umc.spring.service.StoreQueryService;
 
 import java.util.List;
@@ -42,34 +44,61 @@ public class Application {
 //	}
 
 	//미션1
+//	@Bean
+//	public CommandLineRunner run(ApplicationContext context) {
+//		return args -> {
+//			MissionQueryService missionService = context.getBean(MissionQueryService.class);
+//
+//			Long memberId = 1L; // 테스트할 member ID
+//			int limit = 3;
+//			int offset = 0;
+//
+//			System.out.println("Executing findMissionsWithStatus with parameters:");
+//			System.out.println("Member ID: " + memberId);
+//			System.out.println("Limit: " + limit);
+//			System.out.println("Offset: " + offset);
+//
+//			List<MissionWithStoreAndStatusDto> missions = missionService.findMissionsWithStatus(memberId, limit, offset);
+//
+//			if (missions.isEmpty()) {
+//				System.out.println("No missions found.");
+//			} else {
+//				missions.forEach(mission -> {
+//					System.out.println("Mission ID: " + mission.getMissionId());
+//					System.out.println("Reward: " + mission.getReward());
+//					System.out.println("Mission Spec: " + mission.getMissionSpec());
+//					System.out.println("Created At: " + mission.getCreatedAt());
+//					System.out.println("Updated At: " + mission.getUpdatedAt());
+//					System.out.println("Status: " + mission.getStatus());
+//					System.out.println("Member ID: " + mission.getMemberId());
+//					System.out.println("Store Name: " + mission.getStoreName());
+//					System.out.println("----------");
+//				});
+//			}
+//		};
+//	}
+
+	//미션2
 	@Bean
 	public CommandLineRunner run(ApplicationContext context) {
 		return args -> {
-			MissionQueryService missionService = context.getBean(MissionQueryService.class);
+			ReviewQueryService reviewService = context.getBean(ReviewQueryService.class);
 
 			Long memberId = 1L; // 테스트할 member ID
-			int limit = 3;
-			int offset = 0;
 
-			System.out.println("Executing findMissionsWithStatus with parameters:");
-			System.out.println("Member ID: " + memberId);
-			System.out.println("Limit: " + limit);
-			System.out.println("Offset: " + offset);
+			System.out.println("Executing findReviewsByMemberId with Member ID: " + memberId);
 
-			List<MissionWithStoreAndStatusDto> missions = missionService.findMissionsWithStatus(memberId, limit, offset);
+			List<ReviewWithMemberAndStoreDto> reviews = reviewService.findReviewsByMemberId(memberId);
 
-			if (missions.isEmpty()) {
-				System.out.println("No missions found.");
+			if (reviews.isEmpty()) {
+				System.out.println("No reviews found.");
 			} else {
-				missions.forEach(mission -> {
-					System.out.println("Mission ID: " + mission.getMissionId());
-					System.out.println("Reward: " + mission.getReward());
-					System.out.println("Mission Spec: " + mission.getMissionSpec());
-					System.out.println("Created At: " + mission.getCreatedAt());
-					System.out.println("Updated At: " + mission.getUpdatedAt());
-					System.out.println("Status: " + mission.getStatus());
-					System.out.println("Member ID: " + mission.getMemberId());
-					System.out.println("Store Name: " + mission.getStoreName());
+				reviews.forEach(review -> {
+					System.out.println("Nickname: " + review.getNickname());
+					System.out.println("Score: " + review.getScore());
+					System.out.println("Review Body: " + review.getReviewBody());
+					System.out.println("Store Name: " + review.getStoreName());
+					System.out.println("Review Date: " + review.getReviewDate());
 					System.out.println("----------");
 				});
 			}
