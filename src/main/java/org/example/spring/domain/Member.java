@@ -8,7 +8,9 @@ import org.example.spring.domain.enums.SocialType;
 import org.example.spring.domain.mapping.MemberAgree;
 import org.example.spring.domain.mapping.MemberMission;
 import org.example.spring.domain.mapping.MemberPrefer;
-
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@DynamicUpdate
+@DynamicInsert
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -47,10 +51,20 @@ public class Member extends BaseEntity {
 
     private LocalDate inactiveDate;
 
-    @Column(nullable = false, length = 50)
+//    @Column(nullable = false, length = 50)
     private String email;
 
+//    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+
+    @ColumnDefault("0")
     private Integer point;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.point == null) {
+            this.point = 0;
+        }
+    }
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<MemberAgree> memberAgreeList = new ArrayList<>();

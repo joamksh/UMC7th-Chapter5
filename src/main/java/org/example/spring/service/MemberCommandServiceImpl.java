@@ -27,23 +27,27 @@ public class MemberCommandServiceImpl implements MemberCommandService {
     @Override
     @Transactional
     public Member joinMember(MemberRequestDTO.JoinDto request) {
+        try {
+            Member newMember = MemberConverter.toMember(request);
 
-        Member newMember = MemberConverter.toMember(request);
+            // FoodCategory 조회
+            List<FoodCategory> foodCategoryList = request.getPreferCategory().stream()
+                    .map(categoryId -> foodCategoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new FoodCategoryHandler(ErrorStatus.FOOD_CATEGORY_NOT_FOUND)))
+                    .collect(Collectors.toList());
 
-        // FoodCategory 조회
-        List<FoodCategory> foodCategoryList = request.getPreferCategory().stream()
-                .map(categoryId -> foodCategoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new FoodCategoryHandler(ErrorStatus.FOOD_CATEGORY_NOT_FOUND)))
-                .collect(Collectors.toList());
+            // MemberPrefer 변환 및 저장
+            List<MemberPrefer> memberPreferList = MemberPreferConverter.toMemberPreferList(foodCategoryList);
+            memberPreferList.forEach(memberPrefer -> memberPrefer.setMember(newMember));
+            newMember.setMemberPreferList(memberPreferList);
 
-        // MemberPrefer 변환
-        List<MemberPrefer> memberPreferList = MemberPreferConverter.toMemberPreferList(foodCategoryList);
-
-        // Member와 MemberPrefer 연결
-        memberPreferList.forEach(memberPrefer -> memberPrefer.setMember(newMember));
-        newMember.setMemberPreferList(memberPreferList);
-
-        // 저장
-        return memberRepository.save(newMember);
+            // 저장
+            return memberRepository.save(newMember);
+        } catch (FoodCategoryHandler e) {
+            throw new RuntimeException("선호 카테고리를 찾을 수 없습니다: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("회원 가입 중 오류 발생: " + e.getMessage());
+        }
     }
+
 }

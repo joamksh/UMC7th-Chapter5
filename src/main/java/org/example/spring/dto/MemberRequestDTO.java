@@ -16,5 +16,6 @@ public class MemberRequestDTO {
         String address;
         String specAddress;
         List<Long> preferCategory;
+        String email;
     }
 }
