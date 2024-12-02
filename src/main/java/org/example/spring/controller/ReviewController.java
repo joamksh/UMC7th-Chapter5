@@ -5,22 +5,19 @@ import lombok.RequiredArgsConstructor;
 import org.example.spring.dto.ReviewRequestDTO;
 import org.example.spring.dto.ReviewResponseDTO;
 import org.example.spring.response.ApiResponse;
-import org.example.spring.service.ReviewService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.example.spring.service.ReviewCommandServiceImpl;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
 public class ReviewController {
 
-    private final ReviewService reviewService;
+    private final ReviewCommandServiceImpl reviewCommandService;
 
-    @PostMapping
+    @PostMapping("/")
     public ApiResponse<ReviewResponseDTO> addReview(@RequestBody @Valid ReviewRequestDTO requestDTO) {
-        ReviewResponseDTO responseDTO = reviewService.addReview(requestDTO);
-        return ApiResponse.onSuccess(responseDTO);
+        ReviewResponseDTO response = reviewCommandService.addReview(requestDTO);
+        return ApiResponse.onSuccess(response);
     }
 }
