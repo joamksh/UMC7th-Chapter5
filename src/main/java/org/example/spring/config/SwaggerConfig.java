@@ -6,17 +6,14 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Slf4j
 @Configuration
 public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        log.info("Initializing Swagger OpenAPI configuration...");
         Info info = new Info()
                 .title("UMC Server WorkBook API")
                 .description("UMC Server WorkBook API 명세서")
@@ -30,8 +27,6 @@ public class SwaggerConfig {
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT"));
-
-        log.info("Swagger OpenAPI configuration loaded successfully.");
 
         return new OpenAPI()
                 .addServersItem(new Server().url("/"))

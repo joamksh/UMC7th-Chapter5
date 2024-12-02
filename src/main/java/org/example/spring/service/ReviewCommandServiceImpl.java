@@ -7,6 +7,8 @@ import org.example.spring.domain.Review;
 import org.example.spring.domain.Store;
 import org.example.spring.dto.ReviewRequestDTO;
 import org.example.spring.dto.ReviewResponseDTO;
+import org.example.spring.exception.ErrorStatus;
+import org.example.spring.exception.ReviewHandler;
 import org.example.spring.repository.MemberRepository;
 import org.example.spring.repository.ReviewRepository;
 import org.example.spring.repository.StoreRepository;
@@ -21,22 +23,15 @@ public class ReviewCommandServiceImpl implements ReviewService {
     private final MemberRepository memberRepository;
     private final StoreRepository storeRepository;
 
-    @Override
     @Transactional
     public ReviewResponseDTO addReview(ReviewRequestDTO requestDTO) {
         Member member = memberRepository.findById(requestDTO.getMemberId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .orElseThrow(() -> new ReviewHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Store store = storeRepository.findById(requestDTO.getStoreId())
-                .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+                .orElseThrow(() -> new ReviewHandler(ErrorStatus.STORE_NOT_FOUND));
 
-        Review review = Review.builder()
-                .title(requestDTO.getTitle())
-                .score(requestDTO.getScore())
-                .member(member)
-                .store(store)
-                .build();
-
+        Review review = ReviewConverter.toReview(requestDTO, member, store);
         review = reviewRepository.save(review);
 
         return ReviewConverter.toResponseDTO(review);
