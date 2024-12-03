@@ -23,4 +23,11 @@ public class MemberMissionRequestDTO {
         @NotNull(message = "페이지 번호는 필수입니다.")
         private Integer page;
     }
+
+    @Getter
+    @Setter
+    public static class UpdateStatusRequestDTO {
+        @NotNull(message = "회원 미션 ID는 필수입니다.")
+        private Long memberMissionId;
+    }
 }

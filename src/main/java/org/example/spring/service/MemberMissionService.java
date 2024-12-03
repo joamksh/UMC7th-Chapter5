@@ -7,4 +7,5 @@ import org.springframework.data.domain.Page;
 public interface MemberMissionService {
     MemberMissionResponseDTO addMemberMission(MemberMissionRequestDTO requestDTO);
     Page<MemberMissionResponseDTO> getOngoingMissions(MemberMissionRequestDTO.OngoingMissionsRequestDTO requestDTO);
+    MemberMissionResponseDTO updateMissionStatus(MemberMissionRequestDTO.UpdateStatusRequestDTO requestDTO);
 }

@@ -63,4 +63,24 @@ public class MemberMissionServiceImpl implements MemberMissionService {
         // Convert to response DTO
         return ongoingMissions.map(MemberMissionConverter::toResponseDTO);
     }
+
+    @Override
+    @Transactional
+    public MemberMissionResponseDTO updateMissionStatus(MemberMissionRequestDTO.UpdateStatusRequestDTO requestDTO) {
+        // Fetch the specific MemberMission
+        MemberMission memberMission = memberMissionRepository.findById(requestDTO.getMemberMissionId())
+                .orElseThrow(() -> new MemberMissionHandler(ErrorStatus.MISSION_NOT_FOUND));
+
+        // Check if the mission is already complete
+        if (memberMission.getStatus() == MissionStatus.COMPLETE) {
+            throw new MemberMissionHandler("이미 완료된 미션입니다.");
+        }
+
+        // Update the mission status to COMPLETE
+        memberMission.setStatus(MissionStatus.COMPLETE);
+        memberMissionRepository.save(memberMission);
+
+        // Convert to response DTO
+        return MemberMissionConverter.toResponseDTO(memberMission);
+    }
 }

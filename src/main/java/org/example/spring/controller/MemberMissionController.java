@@ -42,4 +42,16 @@ public class MemberMissionController {
         Page<MemberMissionResponseDTO> ongoingMissions = memberMissionService.getOngoingMissions(requestDTO);
         return ApiResponse.onSuccess(ongoingMissions);
     }
+
+    @PutMapping("/{memberMissionId}/complete")
+    @Operation(summary = "미션 상태 업데이트 API", description = "특정 회원 미션의 상태를 완료로 변경합니다.")
+    public ApiResponse<MemberMissionResponseDTO> updateMissionStatus(
+            @PathVariable Long memberMissionId
+    ) {
+        MemberMissionRequestDTO.UpdateStatusRequestDTO requestDTO = new MemberMissionRequestDTO.UpdateStatusRequestDTO();
+        requestDTO.setMemberMissionId(memberMissionId);
+
+        MemberMissionResponseDTO responseDTO = memberMissionService.updateMissionStatus(requestDTO);
+        return ApiResponse.onSuccess(responseDTO);
+    }
 }
