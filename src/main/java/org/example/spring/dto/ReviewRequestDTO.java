@@ -21,4 +21,8 @@ public class ReviewRequestDTO {
     @DecimalMin(value = "0.0", message = "평점은 0 이상이어야 합니다.")
     @DecimalMax(value = "5.0", message = "평점은 5 이하여야 합니다.")
     private Float score;
+
+    @NotBlank(message = "리뷰 내용은 필수입니다.")
+    private String body;
+
 }

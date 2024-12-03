@@ -12,6 +12,7 @@ public class ReviewConverter {
         return Review.builder()
                 .title(requestDTO.getTitle())
                 .score(requestDTO.getScore())
+                .body(requestDTO.getBody())
                 .member(member)
                 .store(store)
                 .build();
