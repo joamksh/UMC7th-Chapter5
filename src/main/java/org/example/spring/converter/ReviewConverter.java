@@ -23,8 +23,10 @@ public class ReviewConverter {
                 .id(review.getId())
                 .title(review.getTitle())
                 .score(review.getScore())
+                .body(review.getBody())
                 .storeName(review.getStore().getName())
                 .memberName(review.getMember().getName())
+                .createdAt(review.getCreatedAt())
                 .build();
     }
 }

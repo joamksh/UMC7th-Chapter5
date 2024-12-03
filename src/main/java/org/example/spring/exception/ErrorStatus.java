@@ -8,7 +8,8 @@ public enum ErrorStatus {
     REVIEW_CREATION_ERROR("Failed to create review"),
     REVIEW_NOT_FOUND("Review not found"),
     MISSION_ALREADY_EXISTS("Mission already exists for the store"),
-    MISSION_ALREADY_CHALLENGED("Mission is already being challenged");
+    MISSION_ALREADY_CHALLENGED("Mission is already being challenged"),
+    PAGE_INDEX_INVALID("페이지 번호는 1 이상이어야 합니다.");
 
 
     private final String message;

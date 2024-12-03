@@ -12,18 +12,19 @@ import org.example.spring.exception.ReviewHandler;
 import org.example.spring.repository.MemberRepository;
 import org.example.spring.repository.ReviewRepository;
 import org.example.spring.repository.StoreRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class ReviewCommandServiceImpl implements ReviewService {
+public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final MemberRepository memberRepository;
     private final StoreRepository storeRepository;
 
-    @Transactional
+    @Override
     public ReviewResponseDTO addReview(ReviewRequestDTO requestDTO) {
         Member member = memberRepository.findById(requestDTO.getMemberId())
                 .orElseThrow(() -> new ReviewHandler(ErrorStatus.MEMBER_NOT_FOUND));
@@ -35,5 +36,15 @@ public class ReviewCommandServiceImpl implements ReviewService {
         review = reviewRepository.save(review);
 
         return ReviewConverter.toResponseDTO(review);
+    }
+
+    @Override
+    public Page<ReviewResponseDTO> getReviewsByMember(Long memberId, Integer page) {
+        if (page < 1) {
+            throw new ReviewHandler(ErrorStatus.PAGE_INDEX_INVALID);
+        }
+
+        Page<Review> reviews = reviewRepository.findAllByMemberId(memberId, PageRequest.of(page - 1, 10));
+        return reviews.map(ReviewConverter::toResponseDTO);
     }
 }

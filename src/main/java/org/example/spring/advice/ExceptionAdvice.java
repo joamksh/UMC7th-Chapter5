@@ -20,9 +20,23 @@ public class ExceptionAdvice {
         return ResponseEntity.badRequest().body(ApiResponse.onError(errorMessage));
     }
 
+
     @ExceptionHandler(MissionAlreadyChallengedHandler.class)
     @ResponseBody
     public ResponseEntity<ApiResponse<String>> handleMissionAlreadyChallengedException(MissionAlreadyChallengedHandler ex) {
         return ResponseEntity.badRequest().body(ApiResponse.onError(ex.getMessage()));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public ResponseEntity<ApiResponse<String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.onError(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReviewHandler.class)
+    @ResponseBody
+    public ResponseEntity<ApiResponse<String>> handleReviewHandlerException(ReviewHandler ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.onError(ex.getMessage()));
+    }
+
 }
