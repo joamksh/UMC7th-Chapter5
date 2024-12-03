@@ -2,10 +2,10 @@ package org.example.spring.converter;
 
 import org.example.spring.domain.Member;
 import org.example.spring.domain.Mission;
+import org.example.spring.domain.enums.MissionStatus;
 import org.example.spring.domain.mapping.MemberMission;
 import org.example.spring.dto.MemberMissionRequestDTO;
 import org.example.spring.dto.MemberMissionResponseDTO;
-import org.example.spring.domain.enums.MissionStatus;
 
 public class MemberMissionConverter {
 
@@ -23,6 +23,8 @@ public class MemberMissionConverter {
                 .memberName(memberMission.getMember().getName())
                 .missionSpec(memberMission.getMission().getMissionSpec())
                 .status(memberMission.getStatus())
+                .reward(memberMission.getMission().getReward())
+                .storeName(memberMission.getMission().getStore().getName())
                 .build();
     }
 }

@@ -3,16 +3,16 @@ package org.example.spring.service;
 import lombok.RequiredArgsConstructor;
 import org.example.spring.converter.MemberMissionConverter;
 import org.example.spring.domain.Member;
-import org.example.spring.domain.Mission;
+import org.example.spring.domain.enums.MissionStatus;
 import org.example.spring.domain.mapping.MemberMission;
 import org.example.spring.dto.MemberMissionRequestDTO;
 import org.example.spring.dto.MemberMissionResponseDTO;
 import org.example.spring.exception.ErrorStatus;
-import org.example.spring.exception.MissionHandler;
+import org.example.spring.exception.MemberMissionHandler;
 import org.example.spring.repository.MemberMissionRepository;
 import org.example.spring.repository.MemberRepository;
-import org.example.spring.repository.MissionRepository;
-import org.example.spring.service.MemberMissionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,26 +22,45 @@ public class MemberMissionServiceImpl implements MemberMissionService {
 
     private final MemberMissionRepository memberMissionRepository;
     private final MemberRepository memberRepository;
-    private final MissionRepository missionRepository;
 
     @Override
     @Transactional
     public MemberMissionResponseDTO addMemberMission(MemberMissionRequestDTO requestDTO) {
+        // Validate member existence
         Member member = memberRepository.findById(requestDTO.getMemberId())
-                .orElseThrow(() -> new MissionHandler(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new MemberMissionHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        Mission mission = missionRepository.findById(requestDTO.getMissionId())
-                .orElseThrow(() -> new MissionHandler(ErrorStatus.MISSION_NOT_FOUND));
-
-        // 중복 체크
-        boolean exists = memberMissionRepository.existsByMemberIdAndMissionId(requestDTO.getMemberId(), requestDTO.getMissionId());
+        // Check for duplicate missions
+        boolean exists = memberMissionRepository.existsByMemberIdAndMissionId(
+                requestDTO.getMemberId(),
+                requestDTO.getMissionId()
+        );
         if (exists) {
-            throw new MissionHandler(ErrorStatus.MISSION_ALREADY_CHALLENGED);
+            throw new MemberMissionHandler(ErrorStatus.MISSION_ALREADY_CHALLENGED);
         }
 
-        MemberMission memberMission = MemberMissionConverter.toEntity(requestDTO, member, mission);
+        // Convert and save MemberMission
+        MemberMission memberMission = MemberMissionConverter.toEntity(requestDTO, member, null);
         memberMission = memberMissionRepository.save(memberMission);
 
         return MemberMissionConverter.toResponseDTO(memberMission);
+    }
+
+    @Override
+    public Page<MemberMissionResponseDTO> getOngoingMissions(MemberMissionRequestDTO.OngoingMissionsRequestDTO requestDTO) {
+        // Validate page number
+        if (requestDTO.getPage() < 1) {
+            throw new MemberMissionHandler(ErrorStatus.PAGE_INDEX_INVALID);
+        }
+
+        // Fetch ongoing missions
+        Page<MemberMission> ongoingMissions = memberMissionRepository.findAllByMemberIdAndStatus(
+                requestDTO.getMemberId(),
+                MissionStatus.CHALLENGING, // Pass the correct enum type
+                PageRequest.of(requestDTO.getPage() - 1, 10)
+        );
+
+        // Convert to response DTO
+        return ongoingMissions.map(MemberMissionConverter::toResponseDTO);
     }
 }
