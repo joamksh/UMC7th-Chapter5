@@ -7,8 +7,8 @@ import org.example.spring.domain.Mission;
 import org.example.spring.domain.mapping.MemberMission;
 import org.example.spring.dto.MemberMissionRequestDTO;
 import org.example.spring.dto.MemberMissionResponseDTO;
-import org.example.spring.exception.CustomException;
 import org.example.spring.exception.ErrorStatus;
+import org.example.spring.exception.MissionHandler;
 import org.example.spring.repository.MemberMissionRepository;
 import org.example.spring.repository.MemberRepository;
 import org.example.spring.repository.MissionRepository;
@@ -28,10 +28,16 @@ public class MemberMissionServiceImpl implements MemberMissionService {
     @Transactional
     public MemberMissionResponseDTO addMemberMission(MemberMissionRequestDTO requestDTO) {
         Member member = memberRepository.findById(requestDTO.getMemberId())
-                .orElseThrow(() -> new CustomException(ErrorStatus.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new MissionHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
         Mission mission = missionRepository.findById(requestDTO.getMissionId())
-                .orElseThrow(() -> new CustomException(ErrorStatus.MISSION_NOT_FOUND));
+                .orElseThrow(() -> new MissionHandler(ErrorStatus.MISSION_NOT_FOUND));
+
+        // 중복 체크
+        boolean exists = memberMissionRepository.existsByMemberIdAndMissionId(requestDTO.getMemberId(), requestDTO.getMissionId());
+        if (exists) {
+            throw new MissionHandler(ErrorStatus.MISSION_ALREADY_CHALLENGED);
+        }
 
         MemberMission memberMission = MemberMissionConverter.toEntity(requestDTO, member, mission);
         memberMission = memberMissionRepository.save(memberMission);

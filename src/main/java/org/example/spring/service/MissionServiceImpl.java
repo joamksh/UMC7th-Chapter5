@@ -6,8 +6,8 @@ import org.example.spring.domain.Mission;
 import org.example.spring.domain.Store;
 import org.example.spring.dto.MissionRequestDTO;
 import org.example.spring.dto.MissionResponseDTO;
-import org.example.spring.exception.CustomException;
 import org.example.spring.exception.ErrorStatus;
+import org.example.spring.exception.ReviewHandler;
 import org.example.spring.repository.MissionRepository;
 import org.example.spring.repository.StoreRepository;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class MissionServiceImpl implements MissionService {
     @Transactional
     public MissionResponseDTO addMission(MissionRequestDTO requestDTO) {
         Store store = storeRepository.findById(requestDTO.getStoreId())
-                .orElseThrow(() -> new CustomException(ErrorStatus.STORE_NOT_FOUND));
+                .orElseThrow(() -> new ReviewHandler(ErrorStatus.STORE_NOT_FOUND));
 
         Mission mission = MissionConverter.toEntity(requestDTO, store);
         mission = missionRepository.save(mission);

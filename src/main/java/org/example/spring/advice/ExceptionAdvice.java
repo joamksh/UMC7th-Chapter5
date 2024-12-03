@@ -1,5 +1,8 @@
 package org.example.spring.advice;
 
+import org.example.spring.exception.MissionAlreadyChallengedHandler;
+import org.example.spring.exception.MissionHandler;
+import org.example.spring.exception.ReviewHandler;
 import org.example.spring.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,5 +19,10 @@ public class ExceptionAdvice {
         String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         return ResponseEntity.badRequest().body(ApiResponse.onError(errorMessage));
     }
-}
 
+    @ExceptionHandler(MissionAlreadyChallengedHandler.class)
+    @ResponseBody
+    public ResponseEntity<ApiResponse<String>> handleMissionAlreadyChallengedException(MissionAlreadyChallengedHandler ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.onError(ex.getMessage()));
+    }
+}

@@ -12,6 +12,7 @@ import org.example.spring.domain.enums.MissionStatus;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "member_mission")
 public class MemberMission extends BaseEntity {
 
 
