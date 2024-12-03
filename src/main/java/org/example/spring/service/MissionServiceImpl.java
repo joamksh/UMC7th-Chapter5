@@ -10,6 +10,8 @@ import org.example.spring.exception.ErrorStatus;
 import org.example.spring.exception.ReviewHandler;
 import org.example.spring.repository.MissionRepository;
 import org.example.spring.repository.StoreRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,5 +32,18 @@ public class MissionServiceImpl implements MissionService {
         mission = missionRepository.save(mission);
 
         return MissionConverter.toResponseDTO(mission);
+    }
+
+    @Override
+    public Page<MissionResponseDTO> getMissionsByStore(Long storeId, Integer page) {
+        if (page < 1) {
+            throw new ReviewHandler(ErrorStatus.PAGE_INDEX_INVALID);
+        }
+
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new ReviewHandler(ErrorStatus.STORE_NOT_FOUND));
+
+        Page<Mission> missions = missionRepository.findAllByStore(store, PageRequest.of(page - 1, 10));
+        return missions.map(MissionConverter::toResponseDTO);
     }
 }
