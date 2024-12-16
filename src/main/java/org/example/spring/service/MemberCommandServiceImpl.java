@@ -11,6 +11,7 @@ import org.example.spring.exception.ErrorStatus;
 import org.example.spring.exception.FoodCategoryHandler;
 import org.example.spring.repository.FoodCategoryRepository;
 import org.example.spring.repository.MemberRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,31 +24,40 @@ public class MemberCommandServiceImpl implements MemberCommandService {
 
     private final MemberRepository memberRepository;
     private final FoodCategoryRepository foodCategoryRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public Member joinMember(MemberRequestDTO.JoinDto request) {
         try {
-            Member newMember = MemberConverter.toMember(request);
+            System.out.println("회원가입 요청 처리 시작: " + request);
 
-            // FoodCategory 조회
+            Member newMember = MemberConverter.toMember(request);
+            System.out.println("변환된 Member 엔티티: " + newMember);
+
+            newMember.encodePassword(passwordEncoder.encode(request.getPassword()));
+
+            // 선호 카테고리 조회
             List<FoodCategory> foodCategoryList = request.getPreferCategory().stream()
                     .map(categoryId -> foodCategoryRepository.findById(categoryId)
                             .orElseThrow(() -> new FoodCategoryHandler(ErrorStatus.FOOD_CATEGORY_NOT_FOUND)))
                     .collect(Collectors.toList());
+            System.out.println("조회된 선호 카테고리: " + foodCategoryList);
 
-            // MemberPrefer 변환 및 저장
+            // MemberPrefer 변환
             List<MemberPrefer> memberPreferList = MemberPreferConverter.toMemberPreferList(foodCategoryList);
             memberPreferList.forEach(memberPrefer -> memberPrefer.setMember(newMember));
             newMember.setMemberPreferList(memberPreferList);
 
-            // 저장
-            return memberRepository.save(newMember);
-        } catch (FoodCategoryHandler e) {
-            throw new RuntimeException("선호 카테고리를 찾을 수 없습니다: " + e.getMessage());
+            // Member 저장
+            Member savedMember = memberRepository.save(newMember);
+            System.out.println("저장된 Member: " + savedMember);
+
+            return savedMember;
+
         } catch (Exception e) {
-            throw new RuntimeException("회원 가입 중 오류 발생: " + e.getMessage());
+            System.err.println("회원가입 처리 중 예외 발생: " + e.getMessage());
+            throw new RuntimeException("회원 가입 중 오류 발생: " + e.getMessage(), e);
         }
     }
-
 }

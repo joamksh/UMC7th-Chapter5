@@ -4,6 +4,7 @@ import lombok.*;
 import org.example.spring.domain.common.BaseEntity;
 import org.example.spring.domain.enums.Gender;
 import org.example.spring.domain.enums.MemberStatus;
+import org.example.spring.domain.enums.Role;
 import org.example.spring.domain.enums.SocialType;
 import org.example.spring.domain.mapping.MemberAgree;
 import org.example.spring.domain.mapping.MemberMission;
@@ -24,6 +25,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "member")
 public class Member extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,14 +34,21 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 20)
     private String name;
 
+    @Column(nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Column(nullable = false, length = 40)
     private String address;
 
     @Column(nullable = false, length = 40)
     private String specAddress;
 
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "VARCHAR(10)")
+    @Enumerated(EnumType.STRING) // Enum을 String으로 저장
+    @Column(nullable = false)
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
@@ -52,6 +61,7 @@ public class Member extends BaseEntity {
     private LocalDate inactiveDate;
 
 //    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true)
     private String email;
 
 //    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
@@ -72,9 +82,14 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<MemberPrefer> memberPreferList = new ArrayList<>();
 
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Review> reviewList = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<MemberMission> memberMissionList = new ArrayList<>();
+
+    public void encodePassword(String password) {
+        this.password = password;
+    }
 }
