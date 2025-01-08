@@ -17,11 +17,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make application.yml
+      - name: Create application.yml
         run: |
           cd ./src/main/resources
-          printf "%s" "${{ secrets.APPLICATION_YML }}" > ./application.yml
-        shell: bash
+          printf "%s" "${{ secrets.APPLICATION_YML }}" > application.yml
+
+      - name: Debug application.yml
+        run: cat ./src/main/resources/application.yml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -32,37 +34,5 @@ jobs:
           arguments: build
           cache-disabled: false
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: umc7thServer
-          path: build/libs/*.jar
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: umc7thServer
-          path: build/libs/
-
-      - name: Deploy to EC2
-        env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-        run: |
-          echo "$EC2_SSH_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
-          scp -v -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/umc7thServer.jar
-          ssh -v -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pgrep java | xargs -r kill -15
-            sleep 5
-            pgrep java | xargs -r kill -9
-            nohup java -jar /home/$EC2_USERNAME/umc7thServer.jar >> app.log 2>&1 &
-          "
-          rm -f private_key.pem
+      - name: Run tests
+        run: ./gradlew test -Dspring.profiles.active=test
