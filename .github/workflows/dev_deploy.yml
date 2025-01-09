@@ -19,14 +19,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. MySQL 설정 및 실행
-      - name: Set up MySQL
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          mysql version: '8.0'
-          mysql database: 'umc7th'
-          mysql user: ${{ secrets.MYSQL_USER }}
-          mysql password: ${{ secrets.MYSQL_PASSWORD }}
+      # 3. MySQL Docker 컨테이너 실행
+      - name: Start MySQL container
+        uses: docker/setup-buildx-action@v2
+      - name: Run MySQL container
+        run: |
+          docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -e MYSQL_DATABASE=umc7th -e MYSQL_USER=${{ secrets.MYSQL_USER }} -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -p 3306:3306 mysql:8.0
 
       # 4. application.yml 생성
       - name: Create application.yml
@@ -77,7 +77,7 @@ jobs:
           chmod 600 private_key.pem
           scp -i private_key.pem -o StrictHostKeyChecking=no build/libs/*.jar $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/umc7thServer.jar
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pgrep java | xargs -r kill -15  # 기존 프로세스 종료
+            pgrep java | xargs -r kill -15
             sleep 5
             nohup java -jar /home/$EC2_USERNAME/umc7thServer.jar > app.log 2>&1 &
           "
