@@ -19,15 +19,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. MySQL 설정 및 실행
+      # 3. MySQL 설정 및 실행 (루트 계정 사용)
       - name: Set up MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
-          mysql-version: '8.0'
-          mysql-database: 'umc7th'  # 생성할 데이터베이스 이름
-          mysql-user: ${{ secrets.MYSQL_USER }}  # MySQL 사용자 이름
-          mysql-password: ${{ secrets.MYSQL_PASSWORD }}  # MySQL 비밀번호
-
+          mysql version: '8.0'                  # MySQL 버전
+          mysql database: 'umc7th'              # 생성할 데이터베이스 이름
+          mysql user: ${{ secrets.MYSQL_USER }} # MySQL 사용자 이름
+          mysql password: ${{ secrets.MYSQL_PASSWORD }}  # MySQL 루트 비밀번호
+          host port: 3306                       # MySQL 호스트 포트
+          container port: 3306                  # MySQL 컨테이너 포트
+          character set server: utf8mb4         # UTF-8 캐릭터셋 설정
+          collation server: utf8mb4_general_ci  # 기본 Collation 설정
+          
       # 4. application.yml 파일 생성
       - name: Create application.yml
         run: |
