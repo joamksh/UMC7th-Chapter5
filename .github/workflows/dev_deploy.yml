@@ -2,39 +2,56 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop ]  # develop 브랜치에 push 발생 시 실행
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. 저장소 코드 체크아웃
       - uses: actions/checkout@v3
 
+      # 2. JDK 17 설치
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 3. MySQL 설정 및 실행
+      - name: Set up MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql-version: '8.0'
+          mysql-database: 'umc7th'  # 생성할 데이터베이스 이름
+          mysql-user: ${{ secrets.MYSQL_USER }}  # MySQL 사용자 이름
+          mysql-password: ${{ secrets.MYSQL_PASSWORD }}  # MySQL 비밀번호
+
+      # 4. application.yml 파일 생성
       - name: Create application.yml
         run: |
           cd ./src/main/resources
-          printf "%s" "${{ secrets.APPLICATION_YML }}" > application.yml
+          echo "${{ secrets.APPLICATION_YML }}" > application.yml
+          cat ./src/main/resources/application.yml  # 디버깅용 (생략 가능)
 
-      - name: Debug application.yml
-        run: cat ./src/main/resources/application.yml  # 디버깅용
-
+      # 5. gradlew 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 6. Gradle 빌드
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
-          cache-disabled: false
-          cache-overwrite-existing: true
+          cache-disabled: false  # 캐시 사용
+          cache-overwrite-existing: true  # 캐시 덮어쓰기
 
+      # 7. 테스트 실행
+      - name: Run tests
+        run: ./gradlew test -Dspring.profiles.active=test
+
+      # 8. 빌드된 아티팩트 업로드
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
@@ -42,30 +59,39 @@ jobs:
           path: build/libs/*.jar
 
   deploy:
-    needs: build
+    needs: build  # build 작업이 성공적으로 완료된 후 실행
     runs-on: ubuntu-latest
 
     steps:
+      # 1. 빌드된 아티팩트 다운로드
       - name: Download build artifact
         uses: actions/download-artifact@v3
         with:
           name: umc7thServer
           path: build/libs/
 
+      # 2. EC2 서버에 배포
       - name: Deploy to EC2
         env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # SSH 개인 키
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}  # EC2 사용자 이름
+          EC2_HOST: ${{ secrets.EC2_HOST }}  # EC2 호스트 이름/IP
         run: |
+          # SSH 키 파일 생성
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
+
+          # 빌드된 JAR 파일 전송
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
           scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/umc7thServer.jar
+
+          # EC2 서버에서 기존 Java 프로세스 종료 및 애플리케이션 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pgrep java | xargs -r kill -15
+            pgrep java | xargs -r kill -15  # 기존 프로세스 종료
             sleep 10
             pgrep java | xargs -r kill -9  # 필요 시 강제 종료
             nohup java -jar /home/$EC2_USERNAME/umc7thServer.jar >> app.log 2>&1 &
           "
+
+          # SSH 키 파일 삭제
           rm -f private_key.pem
