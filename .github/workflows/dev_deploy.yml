@@ -16,6 +16,21 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          
+      - name: Set up MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql version: '8.0'
+          mysql database: 'umc7th'
+          mysql user: ${{ secrets.MYSQL_USER }}      # MySQL 사용자 이름 (Secrets 참조)
+          mysql password: ${{ secrets.MYSQL_PASSWORD }}  # MySQL 비밀번호 (Secrets 참조)
+          host port: 3306
+          container port: 3306
+
+      - name: Load schema and data
+        run: |
+          mysql -h 127.0.0.1 -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} umc7th < ./src/main/resources/schema.sql
+          mysql -h 127.0.0.1 -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} umc7th < ./src/main/resources/data.sql
 
       - name: Make application.yml  # application.yml 파일 생성
         run: |
