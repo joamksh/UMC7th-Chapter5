@@ -30,7 +30,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
-          cache-disabled: false
+          cache-enabled: true
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -57,12 +57,23 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
+
+          # Find the JAR file
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
+
+          # Upload the JAR file to the server
           scp -v -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/umc7thServer.jar
+
+          # Restart the application
           ssh -v -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pgrep java | xargs -r kill -15
-            sleep 5
-            pgrep java | xargs -r kill -9
-            nohup java -jar /home/$EC2_USERNAME/umc7thServer.jar >> app.log 2>&1 &
+            if pgrep java > /dev/null; then
+              pgrep java | xargs -r kill -15
+              sleep 5
+              pgrep java | xargs -r kill -9
+            fi
+            nohup java -jar /home/$EC2_USERNAME/umc7thServer.jar >> /home/$EC2_USERNAME/app-$(date +%Y%m%d%H%M%S).log 2>&1 &
           "
+
+          # Clean up private key
           rm -f private_key.pem
+
